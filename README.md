@@ -23,6 +23,6 @@ Abrir el proyecto en IntelliJ IDEA y correr `App.java`. La consola muestra los d
 
 ## Mapa de memoria
 
-El archivo [`mapa_memoria.html`](mapa_memoria.html) contiene un diagrama interactivo del estado de la memoria (pila y heap) al finalizar `main()`, incluyendo las relaciones de composición y agregación entre los objetos.
+El archivo [`mapa_memoria.html`](https://valenressia-design.github.io/PP_TP1_53467/mapa_memoria.html) contiene un diagrama interactivo del estado de la memoria (pila y heap) al finalizar `main()`, incluyendo las relaciones de composición y agregación entre los objetos.
 
 Podés abrirlo directamente en el navegador descargando el repositorio, o [verlo online](../../blob/main/mapa_memoria.html) desde GitHub.
