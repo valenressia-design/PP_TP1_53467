@@ -1,1 +1,391 @@
-https://valenressia-design.github.io/PP_TP1_53467/mapa_memoria.html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mapa de memoria - EventoUniversitario</title>
+<style>
+  :root{
+    --stack:#dbeafe; --stack-b:#3b82f6;
+    --heapEvento:#dcfce7; --heapEvento-b:#22c55e;
+    --heapAct:#fef9c3; --heapAct-b:#eab308;
+    --heapOtros:#fae8ff; --heapOtros-b:#c026d3;
+    --list:#ffedd5; --list-b:#f97316;
+    --static:#e2e8f0; --static-b:#64748b;
+    --text:#1e293b;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:Segoe UI, Arial, sans-serif; background:#f8fafc; margin:0; padding:24px; color:var(--text);}
+  h1{font-size:20px; margin:0 0 4px;}
+  .subtitle{color:#475569; font-size:13px; margin-bottom:16px;}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; font-size:12px; margin-bottom:20px; align-items:center;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:14px; height:14px; border-radius:3px; display:inline-block; border:1.5px solid;}
+  .leg-diamond{width:14px; height:9px;}
+  #diagram{position:relative;}
+  .static-area{background:var(--static); border:1.5px solid var(--static-b); border-radius:8px; padding:8px 14px; margin-bottom:18px; font-size:13px; display:inline-block;}
+  .static-area b{color:#334155;}
+  .main-grid{display:flex; gap:36px; align-items:flex-start;}
+  .stack-col{flex:0 0 250px;}
+  .heap-col{flex:1; min-width:0;}
+  .col-title{font-weight:bold; font-size:14px; margin-bottom:8px; padding-bottom:4px; border-bottom:2px solid #94a3b8;}
+  .frame{background:#eff6ff; border:1.5px solid var(--stack-b); border-radius:8px; padding:10px;}
+  .frame-title{font-size:12px; font-weight:bold; color:#1d4ed8; margin-bottom:8px;}
+  .var-row{display:flex; align-items:center; justify-content:space-between; background:var(--stack); border:1px solid var(--stack-b); border-radius:5px; padding:5px 8px; margin-bottom:6px; font-size:12px;}
+  .var-name{font-weight:bold;}
+  .var-type{color:#475569; font-size:11px;}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--stack-b); flex-shrink:0;}
+  .heap-groups{display:flex; flex-direction:column; gap:22px;}
+  .group-label{font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;}
+  .row-wrap{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+  .obj-box{border-radius:8px; padding:8px 10px; font-size:11.5px; min-width:170px;}
+  .obj-evento{background:var(--heapEvento); border:1.5px solid var(--heapEvento-b);}
+  .obj-act{background:var(--heapAct); border:1.5px solid var(--heapAct-b);}
+  .obj-otros{background:var(--heapOtros); border:1.5px solid var(--heapOtros-b);}
+  .obj-list{background:var(--list); border:1.5px dashed var(--list-b); min-width:130px;}
+  .obj-title{font-weight:bold; margin-bottom:4px; font-size:12px;}
+  .field-row{display:flex; justify-content:space-between; gap:8px; padding:1px 0;}
+  .field-name{color:#475569;}
+  .ref-row{display:flex; justify-content:space-between; align-items:center; gap:6px; padding:1px 0;}
+  .list-slot{display:flex; align-items:center; gap:6px; font-size:11px; padding:2px 0;}
+  .slot-idx{color:#78716c;}
+  svg#arrows{position:absolute; top:0; left:0; pointer-events:none; overflow:visible;}
+  .lbl-bg{fill:#f8fafc; opacity:0.92;}
+  .lbl-txt{font-size:10.5px; fill:#0f172a; font-family:Segoe UI, Arial, sans-serif;}
+  .lbl-type{font-size:9.5px; font-style:italic;}
+</style>
+</head>
+<body>
+
+<h1>Mapa de memoria - Ejecución de App.main()</h1>
+<div class="subtitle">Estado al finalizar main() (después de e1.mostrarDatos()). Flechas con semántica UML: composición, agregación y referencias de pila.</div>
+
+<div class="legend">
+  <span><span class="swatch" style="background:var(--stack); border-color:var(--stack-b);"></span>Objetos EventoUniversitario / Actividad / otros: color de fondo por tipo</span>
+</div>
+<div class="legend">
+  <span><svg width="26" height="12"><line x1="0" y1="6" x2="26" y2="6" stroke="#0f172a" stroke-width="1.4"/><path d="M0,6 L6,2 L12,6 L6,10 Z" fill="#0f172a"/></svg> Composición (el todo crea y destruye a la parte)</span>
+  <span><svg width="26" height="12"><line x1="0" y1="6" x2="26" y2="6" stroke="#0f172a" stroke-width="1.4"/><path d="M0,6 L6,2 L12,6 L6,10 Z" fill="white" stroke="#0f172a" stroke-width="1.2"/></svg> Agregación (la parte existe de forma independiente)</span>
+  <span><svg width="26" height="12"><line x1="0" y1="6" x2="20" y2="6" stroke="#2563eb" stroke-width="1.4"/><path d="M14,2 L20,6 L14,10" fill="none" stroke="#2563eb" stroke-width="1.4"/></svg> Referencia de pila (variable local)</span>
+  <span><svg width="26" height="12"><line x1="0" y1="6" x2="20" y2="6" stroke="#ea580c" stroke-width="1.2"/><path d="M14,3 L20,6 L14,9" fill="none" stroke="#ea580c" stroke-width="1.2"/></svg> Elemento de una lista (índice)</span>
+</div>
+
+<div class="static-area">
+  <b>Área estática</b> — clase <b>EventoUniversitario</b>: cantidadEventos = <b>4</b>
+</div>
+
+<div id="diagram">
+<svg id="arrows"></svg>
+
+<div class="main-grid">
+
+  <!-- ================= STACK ================= -->
+  <div class="stack-col">
+    <div class="col-title">Pila (Stack)</div>
+    <div class="frame">
+      <div class="frame-title">main(String[] args)</div>
+
+      <div class="var-row"><span class="var-name">e1</span><span class="var-type">EventoUniversitario</span><span id="ref-e1" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">e2</span><span class="var-type">EventoUniversitario</span><span id="ref-e2" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">copiae1</span><span class="var-type">EventoUniversitario</span><span id="ref-copiae1" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">copiae2</span><span class="var-type">EventoUniversitario</span><span id="ref-copiae2" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">est1</span><span class="var-type">Estudiante</span><span id="ref-est1" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">est2</span><span class="var-type">Estudiante</span><span id="ref-est2" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">est3</span><span class="var-type">Estudiante</span><span id="ref-est3" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">sala1</span><span class="var-type">Sala</span><span id="ref-sala1" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">listaactividades</span><span class="var-type">List&lt;Actividad&gt;</span><span id="ref-lista" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">tallerJava</span><span class="var-type">Actividad</span><span id="ref-taller" class="dot"></span></div>
+      <div class="var-row"><span class="var-name">charlaTesting</span><span class="var-type">Actividad</span><span id="ref-charla" class="dot"></span></div>
+    </div>
+  </div>
+
+  <!-- ================= HEAP ================= -->
+  <div class="heap-col">
+    <div class="col-title">Montículo (Heap)</div>
+    <div class="heap-groups">
+
+      <div>
+        <div class="group-label">Instancias de EventoUniversitario</div>
+        <div class="row-wrap">
+          <div id="heap-e1" class="obj-box obj-evento">
+            <div class="obj-title">e1 : EventoUniversitario</div>
+            <div class="field-row"><span class="field-name">id</span><span>"EV001"</span></div>
+            <div class="field-row"><span class="field-name">titulo</span><span>"Jornada de testing..."</span></div>
+            <div class="field-row"><span class="field-name">costoBase</span><span>15000.0</span></div>
+            <div class="field-row"><span class="field-name">gratuito</span><span>false</span></div>
+            <div class="ref-row"><span class="field-name">sala</span><span id="e1-sala-ref" class="dot"></span></div>
+            <div class="ref-row"><span class="field-name">actividades</span><span id="e1-act-ref" class="dot"></span></div>
+          </div>
+          <div id="heap-e2" class="obj-box obj-evento">
+            <div class="obj-title">e2 : EventoUniversitario</div>
+            <div class="field-row"><span class="field-name">id</span><span>"EV002"</span></div>
+            <div class="field-row"><span class="field-name">titulo</span><span>"Hackathon UTN 2026"</span></div>
+            <div class="field-row"><span class="field-name">costoBase</span><span>0.0</span></div>
+            <div class="field-row"><span class="field-name">gratuito</span><span>true</span></div>
+            <div class="ref-row"><span class="field-name">sala</span><span>null</span></div>
+            <div class="ref-row"><span class="field-name">actividades</span><span id="e2-act-ref" class="dot"></span></div>
+          </div>
+          <div id="heap-copiae1" class="obj-box obj-evento">
+            <div class="obj-title">copiae1 : EventoUniversitario</div>
+            <div class="field-row"><span class="field-name">id</span><span>"EV001-C"</span></div>
+            <div class="field-row"><span class="field-name">titulo</span><span>"Jornada de testing..."</span></div>
+            <div class="field-row"><span class="field-name">costoBase</span><span>15000.0</span></div>
+            <div class="field-row"><span class="field-name">gratuito</span><span>false</span></div>
+            <div class="ref-row"><span class="field-name">sala</span><span>null</span></div>
+            <div class="ref-row"><span class="field-name">actividades</span><span id="copiae1-act-ref" class="dot"></span></div>
+          </div>
+          <div id="heap-copiae2" class="obj-box obj-evento">
+            <div class="obj-title">copiae2 : EventoUniversitario</div>
+            <div class="field-row"><span class="field-name">id</span><span>"EV002-C"</span></div>
+            <div class="field-row"><span class="field-name">titulo</span><span>"Hackathon UTN 2026"</span></div>
+            <div class="field-row"><span class="field-name">costoBase</span><span>0.0</span></div>
+            <div class="field-row"><span class="field-name">gratuito</span><span>true</span></div>
+            <div class="ref-row"><span class="field-name">sala</span><span>null</span></div>
+            <div class="ref-row"><span class="field-name">actividades</span><span id="copiae2-act-ref" class="dot"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-label">Listas "actividades" de cada evento</div>
+        <div class="row-wrap">
+          <div id="heap-list-e1act" class="obj-box obj-list">
+            <div class="obj-title">ArrayList (e1.actividades)</div>
+            <div class="list-slot"><span class="slot-idx">[0]</span><span id="list-e1act-0" class="dot"></span><span>Taller</span></div>
+            <div class="list-slot"><span class="slot-idx">[1]</span><span id="list-e1act-1" class="dot"></span><span>Charla</span></div>
+          </div>
+          <div id="heap-list-e2act" class="obj-box obj-list"><div class="obj-title">ArrayList (e2.actividades)</div><div class="list-slot">vacía</div></div>
+          <div id="heap-list-copiae1act" class="obj-box obj-list"><div class="obj-title">ArrayList (copiae1.actividades)</div><div class="list-slot">vacía</div></div>
+          <div id="heap-list-copiae2act" class="obj-box obj-list"><div class="obj-title">ArrayList (copiae2.actividades)</div><div class="list-slot">vacía</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-label">Actividades (Taller / Charla)</div>
+        <div class="row-wrap">
+          <div id="heap-taller" class="obj-box obj-act">
+            <div class="obj-title">Taller (tallerJava)</div>
+            <div class="field-row"><span class="field-name">id</span><span>1</span></div>
+            <div class="field-row"><span class="field-name">titulo</span><span>"Taller de Java"</span></div>
+            <div class="field-row"><span class="field-name">cupoMaximo</span><span>30</span></div>
+            <div class="field-row"><span class="field-name">requiereNotebook</span><span>true</span></div>
+            <div class="ref-row"><span class="field-name">inscripciones</span><span id="taller-insc-ref" class="dot"></span></div>
+          </div>
+          <div id="heap-charla" class="obj-box obj-act">
+            <div class="obj-title">Charla (charlaTesting)</div>
+            <div class="field-row"><span class="field-name">id</span><span>2</span></div>
+            <div class="field-row"><span class="field-name">titulo</span><span>"Charla de testing"</span></div>
+            <div class="field-row"><span class="field-name">cupoMaximo</span><span>50</span></div>
+            <div class="field-row"><span class="field-name">disertante</span><span>"A confirmar"</span></div>
+            <div class="ref-row"><span class="field-name">inscripciones</span><span id="charla-insc-ref" class="dot"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-label">Listas "inscripciones"</div>
+        <div class="row-wrap">
+          <div id="heap-list-tallerIns" class="obj-box obj-list">
+            <div class="obj-title">ArrayList (taller.inscripciones)</div>
+            <div class="list-slot"><span class="slot-idx">[0]</span><span id="list-tallerIns-0" class="dot"></span><span>Inscripcion</span></div>
+            <div class="list-slot"><span class="slot-idx">[1]</span><span id="list-tallerIns-1" class="dot"></span><span>Inscripcion</span></div>
+          </div>
+          <div id="heap-list-charlaIns" class="obj-box obj-list">
+            <div class="obj-title">ArrayList (charla.inscripciones)</div>
+            <div class="list-slot"><span class="slot-idx">[0]</span><span id="list-charlaIns-0" class="dot"></span><span>Inscripcion</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-label">Inscripciones</div>
+        <div class="row-wrap">
+          <div id="heap-insc1" class="obj-box obj-otros">
+            <div class="obj-title">Inscripcion</div>
+            <div class="field-row"><span class="field-name">fecha</span><span>hoy</span></div>
+            <div class="field-row"><span class="field-name">estado</span><span>"Confirmada"</span></div>
+            <div class="ref-row"><span class="field-name">estudiante</span><span id="insc1-est-ref" class="dot"></span></div>
+          </div>
+          <div id="heap-insc2" class="obj-box obj-otros">
+            <div class="obj-title">Inscripcion</div>
+            <div class="field-row"><span class="field-name">fecha</span><span>hoy</span></div>
+            <div class="field-row"><span class="field-name">estado</span><span>"Confirmada"</span></div>
+            <div class="ref-row"><span class="field-name">estudiante</span><span id="insc2-est-ref" class="dot"></span></div>
+          </div>
+          <div id="heap-insc3" class="obj-box obj-otros">
+            <div class="obj-title">Inscripcion</div>
+            <div class="field-row"><span class="field-name">fecha</span><span>hoy</span></div>
+            <div class="field-row"><span class="field-name">estado</span><span>"Confirmada"</span></div>
+            <div class="ref-row"><span class="field-name">estudiante</span><span id="insc3-est-ref" class="dot"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="group-label">Estudiante / Sala</div>
+        <div class="row-wrap">
+          <div id="heap-est1" class="obj-box obj-otros">
+            <div class="obj-title">Estudiante</div>
+            <div class="field-row"><span class="field-name">legajo</span><span>"53467"</span></div>
+            <div class="field-row"><span class="field-name">nombre</span><span>"Valentin Ressia"</span></div>
+          </div>
+          <div id="heap-est2" class="obj-box obj-otros">
+            <div class="obj-title">Estudiante</div>
+            <div class="field-row"><span class="field-name">legajo</span><span>"54321"</span></div>
+            <div class="field-row"><span class="field-name">nombre</span><span>"Juan Lopez"</span></div>
+          </div>
+          <div id="heap-est3" class="obj-box obj-otros">
+            <div class="obj-title">Estudiante</div>
+            <div class="field-row"><span class="field-name">legajo</span><span>"12345"</span></div>
+            <div class="field-row"><span class="field-name">nombre</span><span>"Martin Perez"</span></div>
+          </div>
+          <div id="heap-sala1" class="obj-box obj-otros">
+            <div class="obj-title">Sala</div>
+            <div class="field-row"><span class="field-name">id</span><span>101</span></div>
+            <div class="field-row"><span class="field-name">nombre</span><span>"Auditorio Principal"</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+
+/* [sourceId, targetId, type, multiplicityAtTarget]
+   type: 'comp' composicion | 'agg' agregacion | 'ref' referencia de pila | 'elem' elemento de lista */
+const connections = [
+  ["ref-e1","heap-e1","ref",null],
+  ["ref-e2","heap-e2","ref",null],
+  ["ref-copiae1","heap-copiae1","ref",null],
+  ["ref-copiae2","heap-copiae2","ref",null],
+  ["ref-est1","heap-est1","ref",null],
+  ["ref-est2","heap-est2","ref",null],
+  ["ref-est3","heap-est3","ref",null],
+  ["ref-sala1","heap-sala1","ref",null],
+  ["ref-lista","heap-list-e1act","ref",null],
+  ["ref-taller","heap-taller","ref",null],
+  ["ref-charla","heap-charla","ref",null],
+
+  ["e1-sala-ref","heap-sala1","agg","0..1"],
+  ["e1-act-ref","heap-list-e1act","comp","0..*"],
+  ["e2-act-ref","heap-list-e2act","comp","0..*"],
+  ["copiae1-act-ref","heap-list-copiae1act","comp","0..*"],
+  ["copiae2-act-ref","heap-list-copiae2act","comp","0..*"],
+
+  ["list-e1act-0","heap-taller","elem",null],
+  ["list-e1act-1","heap-charla","elem",null],
+
+  ["taller-insc-ref","heap-list-tallerIns","comp","0..*"],
+  ["charla-insc-ref","heap-list-charlaIns","comp","0..*"],
+
+  ["list-tallerIns-0","heap-insc1","elem",null],
+  ["list-tallerIns-1","heap-insc2","elem",null],
+  ["list-charlaIns-0","heap-insc3","elem",null],
+
+  ["insc1-est-ref","heap-est1","agg","1"],
+  ["insc2-est-ref","heap-est2","agg","1"],
+  ["insc3-est-ref","heap-est3","agg","1"]
+];
+
+function clip(cx, cy, rect){
+  const tcx = rect.x + rect.w/2, tcy = rect.y + rect.h/2;
+  let dx = tcx - cx, dy = tcy - cy;
+  if (dx === 0) dx = 0.0001;
+  if (dy === 0) dy = 0.0001;
+  const scaleX = (rect.w/2) / Math.abs(dx);
+  const scaleY = (rect.h/2) / Math.abs(dy);
+  const scale = Math.min(scaleX, scaleY);
+  return { x: tcx - dx*scale, y: tcy - dy*scale };
+}
+
+function drawArrows(){
+  const container = document.getElementById('diagram');
+  const svg = document.getElementById('arrows');
+  const crect = container.getBoundingClientRect();
+  svg.setAttribute('width', container.offsetWidth);
+  svg.setAttribute('height', container.offsetHeight);
+
+  svg.innerHTML = `<defs>
+    <marker id="compDiamond" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="16" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,5 L7,1 L14,5 L7,9 Z" fill="#0f172a"/>
+    </marker>
+    <marker id="aggDiamond" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="16" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,5 L7,1 L14,5 L7,9 Z" fill="white" stroke="#0f172a" stroke-width="1"/>
+    </marker>
+    <marker id="refHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#2563eb" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="elemHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#ea580c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>`;
+
+  connections.forEach(function(c){
+    const [srcId, dstId, type, mult] = c;
+    const srcEl = document.getElementById(srcId);
+    const dstEl = document.getElementById(dstId);
+    if(!srcEl || !dstEl) return;
+    const s = srcEl.getBoundingClientRect();
+    const d = dstEl.getBoundingClientRect();
+    const sx = s.left - crect.left + s.width/2;
+    const sy = s.top - crect.top + s.height/2;
+    const rect = { x: d.left - crect.left, y: d.top - crect.top, w: d.width, h: d.height };
+    const p = clip(sx, sy, rect);
+
+    const line = document.createElementNS(NS,'line');
+    line.setAttribute('x1', sx); line.setAttribute('y1', sy);
+    line.setAttribute('x2', p.x); line.setAttribute('y2', p.y);
+
+    let stroke = '#0f172a', label = '';
+    if(type === 'comp'){ line.setAttribute('marker-start','url(#compDiamond)'); label='composición'; }
+    else if(type === 'agg'){ line.setAttribute('marker-start','url(#aggDiamond)'); label='agregación'; }
+    else if(type === 'ref'){ line.setAttribute('marker-end','url(#refHead)'); stroke='#2563eb'; }
+    else if(type === 'elem'){ line.setAttribute('marker-end','url(#elemHead)'); stroke='#ea580c'; }
+    line.setAttribute('stroke', stroke);
+    line.setAttribute('stroke-width', (type==='comp'||type==='agg') ? '1.4' : '1.2');
+    line.setAttribute('fill','none');
+    svg.appendChild(line);
+
+    if(mult){
+      const tx = sx + (p.x - sx) * 0.82;
+      const ty = sy + (p.y - sy) * 0.82;
+      const rectW = mult.length * 6.5 + 8;
+      const bg = document.createElementNS(NS,'rect');
+      bg.setAttribute('x', tx - rectW/2); bg.setAttribute('y', ty - 8);
+      bg.setAttribute('width', rectW); bg.setAttribute('height', 13);
+      bg.setAttribute('class','lbl-bg');
+      svg.appendChild(bg);
+      const txt = document.createElementNS(NS,'text');
+      txt.setAttribute('x', tx); txt.setAttribute('y', ty + 2);
+      txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('class','lbl-txt');
+      txt.textContent = mult;
+      svg.appendChild(txt);
+    }
+    if(label){
+      const lx = sx + (p.x - sx) * 0.28;
+      const ly = sy + (p.y - sy) * 0.28;
+      const rectW = label.length * 5.4 + 8;
+      const bg2 = document.createElementNS(NS,'rect');
+      bg2.setAttribute('x', lx - rectW/2); bg2.setAttribute('y', ly - 8);
+      bg2.setAttribute('width', rectW); bg2.setAttribute('height', 12);
+      bg2.setAttribute('class','lbl-bg');
+      svg.appendChild(bg2);
+      const txt2 = document.createElementNS(NS,'text');
+      txt2.setAttribute('x', lx); txt2.setAttribute('y', ly + 1.5);
+      txt2.setAttribute('text-anchor','middle');
+      txt2.setAttribute('class','lbl-txt lbl-type');
+      txt2.textContent = label;
+      svg.appendChild(txt2);
+    }
+  });
+}
+window.addEventListener('load', drawArrows);
+window.addEventListener('resize', drawArrows);
+setTimeout(drawArrows, 200);
+</script>
+</body>
+</html>
